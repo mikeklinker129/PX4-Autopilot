@@ -290,6 +290,12 @@ main_state_transition(const vehicle_status_s &status, const main_state_t new_mai
 
 		break;
 
+	case commander_state_s::MAIN_STATE_NEWCTRL:
+		/* conditions that must be met to enter the new mode*/
+		ret = TRANSITION_CHANGED;
+		break;
+
+
 	case commander_state_s::MAIN_STATE_AUTO_LOITER:
 
 		/* need global position estimate */
@@ -423,6 +429,7 @@ bool set_nav_state(vehicle_status_s *status, actuator_armed_s *armed, commander_
 	case commander_state_s::MAIN_STATE_RATTITUDE:
 	case commander_state_s::MAIN_STATE_STAB:
 	case commander_state_s::MAIN_STATE_ALTCTL:
+	// case commander_state_s::MAIN_STATE_NEWCTRL:
 
 		/* require RC for all manual modes */
 		if (rc_lost && is_armed) {
@@ -452,12 +459,22 @@ bool set_nav_state(vehicle_status_s *status, actuator_armed_s *armed, commander_
 				status->nav_state = vehicle_status_s::NAVIGATION_STATE_ALTCTL;
 				break;
 
+			// case commander_state_s::MAIN_STATE_NEWCTRL:
+			// 	status->nav_state = vehicle_status_s::NAVIGATION_STATE_NEWCTRL;
+			// 	break;
+
 			default:
 				status->nav_state = vehicle_status_s::NAVIGATION_STATE_MANUAL;
 				break;
 			}
 		}
 
+		break;
+
+	case commander_state_s::MAIN_STATE_NEWCTRL:
+		// PX4_INFO("set nav state new ctrl");
+		// status->nav_state = vehicle_status_s::NAVIGATION_STATE_AUTO_LOITER;
+		status->nav_state = vehicle_status_s::NAVIGATION_STATE_NEWCTRL;
 		break;
 
 	case commander_state_s::MAIN_STATE_POSCTL: {
