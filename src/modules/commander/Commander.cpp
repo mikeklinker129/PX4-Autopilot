@@ -3224,9 +3224,10 @@ Commander::update_control_mode()
 	control_mode.flag_external_manual_override_ok = (status.vehicle_type == vehicle_status_s::VEHICLE_TYPE_FIXED_WING
 			&& !status.is_vtol);
 
+	control_mode.flag_control_newctrl_enabled = false;
+
 	switch (status.nav_state) {
 	case vehicle_status_s::NAVIGATION_STATE_MANUAL:
-		control_mode.flag_control_newctrl_enabled = false;
 		control_mode.flag_control_manual_enabled = true;
 		control_mode.flag_control_rates_enabled = stabilization_required();
 		control_mode.flag_control_attitude_enabled = stabilization_required();
@@ -3261,19 +3262,21 @@ Commander::update_control_mode()
 		control_mode.flag_control_climb_rate_enabled = true;
 		control_mode.flag_control_position_enabled = !status.in_transition_mode;
 		control_mode.flag_control_velocity_enabled = !status.in_transition_mode;
+
 		break;
 
 	case vehicle_status_s::NAVIGATION_STATE_NEWCTRL:
 		
-		control_mode.flag_control_auto_enabled = true;
+		control_mode.flag_control_manual_enabled = true;
+		control_mode.flag_control_auto_enabled = false;
 		control_mode.flag_control_rates_enabled = true;
-		control_mode.flag_control_attitude_enabled = true;
-		control_mode.flag_control_altitude_enabled = true;
-		control_mode.flag_control_climb_rate_enabled = true;
-		control_mode.flag_control_position_enabled = !status.in_transition_mode;
-		control_mode.flag_control_velocity_enabled = !status.in_transition_mode;
+		control_mode.flag_control_attitude_enabled = false;
+		control_mode.flag_control_rattitude_enabled = false;
+		control_mode.flag_control_altitude_enabled = false;
+		control_mode.flag_control_climb_rate_enabled = false;
+		control_mode.flag_control_position_enabled = false; //!status.in_transition_mode;
+		control_mode.flag_control_velocity_enabled = false; //!status.in_transition_mode;
 		control_mode.flag_control_newctrl_enabled = true;
-		PX4_INFO("Setting Flagssssss");
 		break;
 
 

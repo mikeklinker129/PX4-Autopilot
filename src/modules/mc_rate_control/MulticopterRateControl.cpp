@@ -300,7 +300,19 @@ MulticopterRateControl::Run()
 			}
 
 			actuators.timestamp = hrt_absolute_time();
-			_actuators_0_pub.publish(actuators);
+
+			if (_v_control_mode.flag_control_newctrl_enabled==false){
+				_actuators_0_pub.publish(actuators);
+
+			} else{
+					actuators.control[0] = 0.0f;      // roll
+					actuators.control[1] = 0.0f;      // pitch
+					actuators.control[2] = 0.1f;		// yaw
+					actuators.control[3] = 1.0f;		// thrust
+				_actuators_0_pub.publish(actuators);
+			
+			}
+			
 
 		} else if (_v_control_mode.flag_control_termination_enabled) {
 			if (!_vehicle_status.is_vtol) {
