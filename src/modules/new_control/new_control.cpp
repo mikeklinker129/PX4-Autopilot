@@ -105,27 +105,32 @@ int new_control_thread_main(int argc, char *argv[])
 	PX4_INFO("Starting New Control");
 	// Example: run the loop synchronized to the sensor_combined topic publication
 	int sensor_combined_sub = orb_subscribe(ORB_ID(sensor_combined));
-	int veh_control_mode_sub    = orb_subscribe(ORB_ID(vehicle_control_mode));
+	struct sensor_combined_s sensor_combined;
 
+	// Vehicle Control Mode (Control Flags) Subscription Setup
+	int veh_control_mode_sub    = orb_subscribe(ORB_ID(vehicle_control_mode));
 	struct vehicle_control_mode_s control_mode;
 	memset(&control_mode, 0, sizeof(control_mode));
 
+	// Vehicle Rates Setpoint Publisher
 	struct vehicle_rates_setpoint_s rate_sp;
 	memset(&rate_sp, 0, sizeof(rate_sp));
 	orb_advert_t rate_sp_pub = orb_advertise(ORB_ID(vehicle_rates_setpoint), &rate_sp);
 
 
+	// Actuator Outputs publisher. This what sends PWM values to the outputs. 
 	struct actuator_outputs_s actuator_outputs;
 	memset(&actuator_outputs, 0, sizeof(actuator_outputs));
 	orb_advert_t outputs_pub = orb_advertise(ORB_ID(actuator_outputs), &actuator_outputs);
 
 
+
+
+
+
 	px4_pollfd_struct_t fds[1];
 	fds[0].fd = sensor_combined_sub;
 	fds[0].events = POLLIN;
-
-
-	int counter = 0; 
 
 	// initialize parameters
 	// parameters_update(true);
@@ -146,15 +151,9 @@ int new_control_thread_main(int argc, char *argv[])
 
 		} else if (fds[0].revents & POLLIN) {
 
-			struct sensor_combined_s sensor_combined;
+			
 			orb_copy(ORB_ID(sensor_combined), sensor_combined_sub, &sensor_combined);
-			// TODO: do something with the data...
 			orb_copy(ORB_ID(vehicle_control_mode), veh_control_mode_sub, &control_mode);
-
-			counter++;
-
-
-
 
 			if (control_mode.flag_control_newctrl_enabled){
 
@@ -173,11 +172,6 @@ int new_control_thread_main(int argc, char *argv[])
 				actuator_outputs.timestamp = hrt_absolute_time();
 
 				orb_publish(ORB_ID(actuator_outputs), outputs_pub, &actuator_outputs);
-
-
-				if (counter%250==0){
-					warnx("tick");
-				}
 			
 			}
 
@@ -190,213 +184,7 @@ int new_control_thread_main(int argc, char *argv[])
 
 	orb_unsubscribe(sensor_combined_sub);
 
-
-
-
-
     return 1;
-
-
-
-
-	// // /* read arguments */
-	// // bool verbose = false;
-
-	// // for (int i = 1; i < argc; i++) {
-	// // 	if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--verbose") == 0) {
-	// // 		verbose = true;
-	// // 	}
-	// // }
-
-	// /* welcome user (warnx prints a line, including an appended\n, with variable arguments */
-	// warnx("[example new control] started");
-	// /* initialize parameters, first the handles, then the values */
-
-	// /*
-	//  * Declare and safely initialize all structs to zero.
-	//  *
-	//  * These structs contain the system state and things
-	//  * like attitude, position, the current waypoint, etc.
-	//  */
-	// struct vehicle_attitude_s att;
-	// memset(&att, 0, sizeof(att));
-
-	// struct vehicle_global_position_s global_pos;
-	// memset(&global_pos, 0, sizeof(global_pos));
-
-	// struct vehicle_control_mode_s control_mode;
-	// memset(&control_mode, 0, sizeof(control_mode));
-
-	// /* output structs - this is what is sent to the mixer */
-	// struct actuator_controls_s actuators;
-	// memset(&actuators, 0, sizeof(actuators));
-
-	// bool controller_active = false; 
-
-
-	// /* publish actuator controls with zero values */
-	// for (unsigned i = 0; i < actuator_controls_s::NUM_ACTUATOR_CONTROLS; i++) {
-	// 	actuators.control[i] = 0.0f;
-	// }
-
-	// /*
-	//  * Advertise that this controller will publish actuator
-	//  * control values and the rate setpoint
-	//  */
-	// // orb_advert_t actuator_pub = orb_advertise(ORB_ID_VEHICLE_ATTITUDE_CONTROLS, &actuators);
-
-	// /* subscribe to topics. */
-	// int att_sub 				= orb_subscribe(ORB_ID(vehicle_attitude));
-	// int global_pos_sub 			= orb_subscribe(ORB_ID(vehicle_global_position));
-	// int veh_control_mode_sub    = orb_subscribe(ORB_ID(vehicle_control_mode));
-
-
-
-	// // int vehicle_control_mode 	= orb_subscribe(ORB_ID(vehicle_control_mode))
-
-
-	// //advertise to actuator_control topic 
-	// struct actuator_controls_s act;
-	// memset(&act, 0, sizeof(act));
-	// orb_advert_t act_pub = orb_advertise(ORB_ID(actuator_controls_0), &act);
-
-
-	// struct vehicle_rates_setpoint_s rate_sp;
-	// memset(&rate_sp, 0, sizeof(rate_sp));
-	// orb_advert_t rate_sp_pub = orb_advertise(ORB_ID(vehicle_rates_setpoint), &rate_sp);
-
-
-	// /* Setup of loop */
-
-	// // struct pollfd fds[1] {};
-	// // fds[0].fd = att_sub;
-	// // fds[0].events = POLLIN;
-
-	// int tick_counter=0;
-
-	// while (!thread_should_exit) {
-
-		
-	// 	 * Wait for a sensor or param update, check for exit condition every 500 ms.
-	// 	 * This means that the execution will block here without consuming any resources,
-	// 	 * but will continue to execute the very moment a new attitude measurement or
-	// 	 * a param update is published. So no latency in contrast to the polling
-	// 	 * design pattern (do not confuse the poll() system call with polling).
-	// 	 *
-	// 	 * This design pattern makes the controller also agnostic of the attitude
-	// 	 * update speed - it runs as fast as the attitude updates with minimal latency.
-		 
-	// 	int ret = poll(fds, 1, 500);
-
-		
-
-	// 	if (ret < 0) {
-	// 		/*
-	// 		 * Poll error, this will not really happen in practice,
-	// 		 * but its good design practice to make output an error message.
-	// 		 */
-	// 		warnx("poll error");
-
-	// 	} else if (ret == 0) {
-	// 		/* no return value = nothing changed for 500 ms, ignore */
-	// 	} else {
-
-			
-	// 		// // check for parameter updates
-	// 		// if (parameter_update_sub.updated()) {
-	// 		// 	// clear update
-	// 		// 	parameter_update_s pupdate;
-	// 		// 	parameter_update_sub.copy(&pupdate);
-
-	// 		// 	// if a param update occured, re-read our parameters
-	// 		// 	parameters_update(&ph, &p);
-	// 		// }
-
-	// 		/* only run controller if attitude changed */
-	// 		if (fds[0].revents & POLLIN) {
-
-
-	// 			tick_counter++;
-
-	// 			if (tick_counter%250==0){
-	// 				warnx("tick");
-	// 			}
-
-
-	// 			if (tick_counter>25000000){
-	// 				tick_counter=0;
-	// 			}
-
-	// 			/* Check if there is a new position measurement or position setpoint */
-	// 			bool pos_updated;
-	// 			orb_check(global_pos_sub, &pos_updated);
-
-	// 			/* get a local copy of attitude */
-	// 			orb_copy(ORB_ID(vehicle_attitude), att_sub, &att);
-
-	// 			orb_copy(ORB_ID(vehicle_control_mode), veh_control_mode_sub, &control_mode);
-
-	// 			if (control_mode.flag_control_newctrl_enabled != controller_active){
-
-	// 				warnx("WE HIT THE FLAG");
-
-	// 				controller_active = control_mode.flag_control_newctrl_enabled;
-
-	// 			}
-
-	// 			if (controller_active){
-
-	// 			}
-
-
-	// 			if (control_mode.flag_control_newctrl_enabled){
-
-	// 				if(false){
-
-
-	// 				act.control[0] = 0.0f;      // roll
-	// 				act.control[1] = 0.0f;      // pitch
-	// 				act.control[2] = 1.0f;		// yaw
-	// 				act.control[3] = 1.0f;		// thrust
-	// 				orb_publish(ORB_ID(actuator_controls_0), act_pub, &act);
-	// 				}
-
-	// 				rate_sp.roll = 0.0f;
-	// 				rate_sp.pitch= 0.0f;
-	// 				rate_sp.yaw  = 0.75f;
-
-	// 				orb_publish(ORB_ID(vehicle_rates_setpoint), rate_sp_pub, &rate_sp);
-	// 			}
-
-
-	// 			/* sanity check and publish actuator outputs */
-	// 			// if (PX4_ISFINITE(actuators.control[0]) &&
-	// 			//     PX4_ISFINITE(actuators.control[1]) &&
-	// 			//     PX4_ISFINITE(actuators.control[2]) &&
-	// 			//     PX4_ISFINITE(actuators.control[3])) {
-	// 			// 	orb_publish(ORB_ID_VEHICLE_ATTITUDE_CONTROLS, actuator_pub, &actuators);
-
-	// 			// 	if (verbose) {
-	// 			// 		warnx("published");
-	// 			// 	}
-	// 			// }
-	// 		}
-	// 	}
-	// }
-
-	// printf("[new_control] exiting, stopping all motors.\n");
-	// thread_running = false;
-
-	// /* kill all outputs */
-	// // for (unsigned i = 0; i < actuator_controls_s::NUM_ACTUATOR_CONTROLS; i++) {
-	// // 	actuators.control[i] = 0.0f;
-	// // }
-
-	// // orb_publish(ORB_ID_VEHICLE_ATTITUDE_CONTROLS, actuator_pub, &actuators);
-
-	// fflush(stdout);
-
-	// return 0;
 }
 
 /* Startup Functions */
@@ -437,7 +225,7 @@ int new_control_main(int argc, char *argv[])
 		thread_should_exit = false;
 		deamon_task = px4_task_spawn_cmd("new_control",
 						 SCHED_DEFAULT,
-						 SCHED_PRIORITY_MAX - 20,
+						 SCHED_PRIORITY_DEFAULT,
 						 2048,
 						 new_control_thread_main,
 						 (argv) ? (char *const *)&argv[2] : (char *const *)nullptr);
