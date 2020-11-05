@@ -202,11 +202,14 @@ void Simulator::send_controls()
 		mavlink_hil_actuator_controls_t hil_act_control = actuator_controls_from_outputs();
 
 		mavlink_message_t message{};
+	
 		mavlink_msg_hil_actuator_controls_encode(_param_mav_sys_id.get(), _param_mav_comp_id.get(), &message, &hil_act_control);
+		
 
 		PX4_DEBUG("sending controls t=%ld (%ld)", _actuator_outputs.timestamp, hil_act_control.time_usec);
 
-		send_mavlink_message(message);
+		send_mavlink_message(message); // This is where the SITL outputs the PWM values to to the sim. 
+
 	}
 }
 

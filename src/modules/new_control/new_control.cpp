@@ -64,6 +64,7 @@
 #include <uORB/topics/vehicle_global_position.h>
 #include <uORB/topics/vehicle_global_position.h>
 #include <uORB/topics/actuator_controls.h>
+#include <uORB/topics/actuator_outputs.h>
 #include <uORB/topics/vehicle_control_mode.h>
 #include <uORB/topics/vehicle_rates_setpoint.h>
 #include <uORB/topics/vehicle_status.h>
@@ -114,6 +115,11 @@ int new_control_thread_main(int argc, char *argv[])
 	orb_advert_t rate_sp_pub = orb_advertise(ORB_ID(vehicle_rates_setpoint), &rate_sp);
 
 
+	struct actuator_outputs_s actuator_outputs;
+	memset(&actuator_outputs, 0, sizeof(actuator_outputs));
+	orb_advert_t outputs_pub = orb_advertise(ORB_ID(actuator_outputs), &actuator_outputs);
+
+
 	px4_pollfd_struct_t fds[1];
 	fds[0].fd = sensor_combined_sub;
 	fds[0].events = POLLIN;
@@ -158,7 +164,17 @@ int new_control_thread_main(int argc, char *argv[])
 				rate_sp.thrust_body[2]=0.9f;
 
 				orb_publish(ORB_ID(vehicle_rates_setpoint), rate_sp_pub, &rate_sp);
-				
+
+				actuator_outputs.output[0] = 1900;
+				actuator_outputs.output[1] = 1901;
+				actuator_outputs.output[2] = 1902;
+				actuator_outputs.output[3] = 1903;
+				actuator_outputs.noutputs = 4;
+				actuator_outputs.timestamp = hrt_absolute_time();
+
+				orb_publish(ORB_ID(actuator_outputs), outputs_pub, &actuator_outputs);
+
+
 				if (counter%250==0){
 					warnx("tick");
 				}
