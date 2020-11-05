@@ -53,6 +53,7 @@ px4_add_board(
 		vtol_att_control
 		uuv_att_control
 		new_control
+		rhoman_control
 
 	SYSTEMCMDS
 		#dumpfile
