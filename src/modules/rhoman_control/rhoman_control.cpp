@@ -11,6 +11,10 @@
 #include <uORB/topics/actuator_controls.h>
 #include <uORB/topics/actuator_outputs.h>
 #include <uORB/topics/vehicle_control_mode.h>
+#include <uORB/topics/vehicle_local_position.h>
+#include <uORB/topics/vehicle_local_position_setpoint.h>
+#include <uORB/topics/vehicle_angular_velocity.h>
+
 
 
 int RhomanControl::print_status()
@@ -109,20 +113,31 @@ RhomanControl::RhomanControl(int example_param, bool example_flag)
 void RhomanControl::run()
 {
 	// Subscriptions
-	int sensor_combined_sub = orb_subscribe(ORB_ID(sensor_combined));
-	int vehicle_attitude_sub = orb_subscribe(ORB_ID(vehicle_attitude));
-	int veh_control_mode_sub    = orb_subscribe(ORB_ID(vehicle_control_mode));
+	int sensor_combined_sub = 				orb_subscribe(ORB_ID(sensor_combined));
+	int veh_control_mode_sub = 				orb_subscribe(ORB_ID(vehicle_control_mode));
+	int veh_attitude_sub = 					orb_subscribe(ORB_ID(vehicle_attitude));
+	int veh_local_position_sub = 			orb_subscribe(ORB_ID(vehicle_local_position));
+	int veh_local_position_setpoint_sub = 	orb_subscribe(ORB_ID(vehicle_local_position_setpoint));
+	int veh_angular_velocity_sub = 			orb_subscribe(ORB_ID(vehicle_angular_velocity));
 
 	// Publications
-	struct actuator_outputs_s actuator_outputs;
-	orb_advert_t outputs_pub = orb_advertise(ORB_ID(actuator_outputs), &actuator_outputs);
-
+	struct actuator_outputs_s 	actuator_outputs;
+	orb_advert_t outputs_pub = 	orb_advertise(ORB_ID(actuator_outputs), &actuator_outputs);
 
 	// initialize structures
-	struct sensor_combined_s sensor_combined;
-	struct vehicle_attitude_s vehicle_attitude;
-	struct vehicle_control_mode_s control_mode;
+	struct sensor_combined_s 				sensor_combined;
+	struct vehicle_control_mode_s 			control_mode;
+	struct vehicle_attitude_s 				veh_attitude;
+	struct vehicle_local_position_s 		veh_local_position;
+	struct vehicle_local_position_setpoint_s veh_local_position_setpoint;
+	struct vehicle_angular_velocity_s 		veh_angular_velocity;
 	
+	memset(&sensor_combined, 0, sizeof(sensor_combined));
+	memset(&control_mode, 0, sizeof(control_mode));
+	memset(&veh_attitude, 0, sizeof(veh_attitude));
+	memset(&veh_local_position, 0, sizeof(veh_local_position));
+	memset(&veh_local_position_setpoint, 0, sizeof(veh_local_position_setpoint));
+	memset(&veh_angular_velocity, 0, sizeof(veh_angular_velocity));
 
 
 	// Main loop clocks off of Sensor Combined message. 
@@ -152,8 +167,11 @@ void RhomanControl::run()
 			// THIS IS OUR MAIN LOOP HERE. 
 			
 			orb_copy(ORB_ID(sensor_combined), sensor_combined_sub, &sensor_combined);
-			orb_copy(ORB_ID(vehicle_attitude), vehicle_attitude_sub, &vehicle_attitude);
 			orb_copy(ORB_ID(vehicle_control_mode), veh_control_mode_sub, &control_mode);
+			orb_copy(ORB_ID(vehicle_attitude), veh_attitude_sub, &veh_attitude);
+			orb_copy(ORB_ID(vehicle_local_position), veh_local_position_sub, &veh_local_position);
+			orb_copy(ORB_ID(vehicle_local_position_setpoint), veh_local_position_setpoint_sub, &veh_local_position_setpoint );
+			orb_copy(ORB_ID(vehicle_angular_velocity), veh_angular_velocity_sub, &veh_angular_velocity );
 
 			if (control_mode.flag_control_newctrl_enabled) {
 				actuator_outputs.output[0] = 1900;
@@ -172,8 +190,12 @@ void RhomanControl::run()
 	}
 
 	orb_unsubscribe(sensor_combined_sub);
-	orb_unsubscribe(vehicle_attitude_sub);
 	orb_unsubscribe(veh_control_mode_sub);
+	orb_unsubscribe(veh_attitude_sub);
+	orb_unsubscribe(veh_local_position_sub);
+	orb_unsubscribe(veh_local_position_setpoint_sub);
+	orb_unsubscribe(veh_angular_velocity_sub);
+	
 
 }
 
