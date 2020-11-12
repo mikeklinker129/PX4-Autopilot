@@ -347,13 +347,7 @@ bool MixingOutput::update()
 			if (_interface.updateOutputs(false, _current_output_value, num_motor_test, 1)) {
 				actuator_outputs_s actuator_outputs{};
 
-				_vehicle_control_mode_sub.update(&vehicle_control_mode);
-
-				if (!vehicle_control_mode.flag_control_rhoman_enabled){
-					setAndPublishActuatorOutputs(num_motor_test, actuator_outputs);
-				}
-
-				
+				setAndPublishActuatorOutputs(num_motor_test, actuator_outputs);
 				
 			}
 
@@ -442,8 +436,12 @@ MixingOutput::setAndPublishActuatorOutputs(unsigned num_outputs, actuator_output
 		actuator_outputs.output[i] = _current_output_value[i];
 	}
 
-	actuator_outputs.timestamp = hrt_absolute_time();
-	_outputs_pub.publish(actuator_outputs); // This is where the mixer outputs actuator outputs.
+
+	_vehicle_control_mode_sub.update(&vehicle_control_mode);
+	if (!vehicle_control_mode.flag_control_rhoman_enabled){
+		actuator_outputs.timestamp = hrt_absolute_time();
+		_outputs_pub.publish(actuator_outputs); // This is where the mixer outputs actuator outputs.
+	}
 
 }
 

@@ -4,6 +4,7 @@
 #include <px4_platform_common/module_params.h>
 #include <uORB/Subscription.hpp>
 #include <uORB/topics/parameter_update.h>
+#include <uORB/topics/actuator_outputs.h>
 
 extern "C" __EXPORT int rhoman_control_main(int argc, char *argv[]);
 
@@ -57,7 +58,7 @@ private:
 	// Subscriptions
 	uORB::Subscription	_parameter_update_sub{ORB_ID(parameter_update)};
 
-
+	uORB::Subscription	test_actuator_output_sub{ORB_ID(actuator_outputs)};
 
 };
 

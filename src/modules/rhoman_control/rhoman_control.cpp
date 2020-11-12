@@ -120,6 +120,10 @@ void RhomanControl::run()
 	int veh_local_position_setpoint_sub = 	orb_subscribe(ORB_ID(vehicle_local_position_setpoint));
 	int veh_angular_velocity_sub = 			orb_subscribe(ORB_ID(vehicle_angular_velocity));
 
+	
+	
+
+
 	// Publications
 	struct actuator_outputs_s 	actuator_outputs;
 	orb_advert_t outputs_pub = 	orb_advertise(ORB_ID(actuator_outputs), &actuator_outputs);
@@ -182,6 +186,13 @@ void RhomanControl::run()
 			}
 
 
+			if (test_actuator_output_sub.updated()){
+				// PX4_INFO("Got New Values.");
+				// struct actuator_outputs_s test_actuators;
+
+			}
+
+
 			if (control_mode.flag_control_rhoman_enabled) {
 				actuator_outputs.output[0] = 1900;
 				actuator_outputs.output[1] = 1901;
@@ -190,8 +201,8 @@ void RhomanControl::run()
 				actuator_outputs.noutputs = 4;
 				actuator_outputs.timestamp = hrt_absolute_time();
 
-				
 				orb_publish(ORB_ID(actuator_outputs), outputs_pub, &actuator_outputs);
+				
 			}
 
 		}
