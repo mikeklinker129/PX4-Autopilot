@@ -148,6 +148,8 @@ void RhomanControl::run()
 	// initialize parameters
 	parameters_update(true);
 
+	bool flag_state = false;
+
 	while (!should_exit()) {
 
 		// wait for up to 1000ms for data
@@ -174,12 +176,13 @@ void RhomanControl::run()
 			orb_copy(ORB_ID(vehicle_angular_velocity), veh_angular_velocity_sub, &veh_angular_velocity );
 
 
+			if (flag_state!=control_mode.flag_control_rhoman_enabled){
+				PX4_INFO("Switching Rhoman Flag to: %i", !flag_state );
+				flag_state =control_mode.flag_control_rhoman_enabled;
+			}
 
-			special_controler();
 
-
-
-			if (control_mode.flag_control_newctrl_enabled) {
+			if (control_mode.flag_control_rhoman_enabled) {
 				actuator_outputs.output[0] = 1900;
 				actuator_outputs.output[1] = 1901;
 				actuator_outputs.output[2] = 1902;
@@ -187,6 +190,7 @@ void RhomanControl::run()
 				actuator_outputs.noutputs = 4;
 				actuator_outputs.timestamp = hrt_absolute_time();
 
+				
 				orb_publish(ORB_ID(actuator_outputs), outputs_pub, &actuator_outputs);
 			}
 

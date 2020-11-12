@@ -349,7 +349,7 @@ bool MixingOutput::update()
 
 				_vehicle_control_mode_sub.update(&vehicle_control_mode);
 
-				if (!vehicle_control_mode.flag_control_newctrl_enabled){
+				if (!vehicle_control_mode.flag_control_rhoman_enabled){
 					setAndPublishActuatorOutputs(num_motor_test, actuator_outputs);
 				}
 

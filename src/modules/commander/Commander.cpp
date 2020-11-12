@@ -390,9 +390,9 @@ extern "C" __EXPORT int commander_main(int argc, char *argv[])
 				send_vehicle_command(vehicle_command_s::VEHICLE_CMD_DO_SET_MODE, 1, PX4_CUSTOM_MAIN_MODE_AUTO,
 						     PX4_CUSTOM_SUB_MODE_AUTO_PRECLAND);
 
-			} else if (!strcmp(argv[2], "newctrl")) {
-				PX4_INFO("Sending Vehicle Command for newctrl: %i", PX4_CUSTOM_MAIN_MODE_NEWCTRL);
-				send_vehicle_command(vehicle_command_s::VEHICLE_CMD_DO_SET_MODE, 1, PX4_CUSTOM_MAIN_MODE_NEWCTRL);
+			} else if (!strcmp(argv[2], "rhoman")) {
+				PX4_INFO("Sending Vehicle Command for Rhoman Control: %i", PX4_CUSTOM_MAIN_MODE_RHOMAN);
+				send_vehicle_command(vehicle_command_s::VEHICLE_CMD_DO_SET_MODE, 1, PX4_CUSTOM_MAIN_MODE_RHOMAN);
 
 			} else {
 				PX4_ERR("argument %s unsupported.", argv[2]);
@@ -405,18 +405,6 @@ extern "C" __EXPORT int commander_main(int argc, char *argv[])
 		}
 	}
 
-	if (!strcmp(argv[1], "whatmode")) {
-
-		// if (_internal_state.main_state == 16){
-		// 	PX4_INFO("Currently In New Flight Control Mode");
-		// } else {
-		// 	PX4_INFO(_internal_state.main_state);
-		// }
-
-		PX4_INFO("Im Here At Least.");
-
-		return 0;
-	}
 
 	if (!strcmp(argv[1], "lockdown")) {
 
@@ -546,12 +534,6 @@ Commander::handle_command(vehicle_status_s *status_local, const vehicle_command_
 	/* result of the command */
 	unsigned cmd_result = vehicle_command_s::VEHICLE_CMD_RESULT_UNSUPPORTED;
 
-	PX4_INFO("Handle Command.");
-
-	// PX4_INFO("%i", _internal_state.main_state);
-	
-
-
 	/* request to set different system mode */
 	switch (cmd.command) {
 	case vehicle_command_s::VEHICLE_CMD_DO_REPOSITION: {
@@ -587,7 +569,6 @@ Commander::handle_command(vehicle_status_s *status_local, const vehicle_command_
 
 			PX4_INFO("Handle DO SET MODE: %i  %i  %i",base_mode, custom_main_mode, custom_sub_mode);
 
-
 			transition_result_t arming_ret = TRANSITION_NOT_CHANGED;
 
 			transition_result_t main_ret = TRANSITION_NOT_CHANGED;
@@ -611,8 +592,8 @@ Commander::handle_command(vehicle_status_s *status_local, const vehicle_command_
 					reset_posvel_validity(&_status_changed);
 					main_ret = main_state_transition(*status_local, commander_state_s::MAIN_STATE_POSCTL, status_flags, &_internal_state);
 
-				} else if (custom_main_mode == PX4_CUSTOM_MAIN_MODE_NEWCTRL) {
-					main_ret = main_state_transition(*status_local, commander_state_s::MAIN_STATE_NEWCTRL, status_flags, &_internal_state);
+				} else if (custom_main_mode == PX4_CUSTOM_MAIN_MODE_RHOMAN) {
+					main_ret = main_state_transition(*status_local, commander_state_s::MAIN_STATE_RHOMAN, status_flags, &_internal_state);
 
 				} else if (custom_main_mode == PX4_CUSTOM_MAIN_MODE_AUTO) {
 					/* AUTO */
@@ -3224,7 +3205,7 @@ Commander::update_control_mode()
 	control_mode.flag_external_manual_override_ok = (status.vehicle_type == vehicle_status_s::VEHICLE_TYPE_FIXED_WING
 			&& !status.is_vtol);
 
-	control_mode.flag_control_newctrl_enabled = false;
+	control_mode.flag_control_rhoman_enabled = false;
 
 	switch (status.nav_state) {
 	case vehicle_status_s::NAVIGATION_STATE_MANUAL:
@@ -3265,7 +3246,7 @@ Commander::update_control_mode()
 
 		break;
 
-	case vehicle_status_s::NAVIGATION_STATE_NEWCTRL:
+	case vehicle_status_s::NAVIGATION_STATE_RHOMAN:
 		
 		control_mode.flag_control_manual_enabled = true;
 		control_mode.flag_control_auto_enabled = false;
@@ -3276,7 +3257,7 @@ Commander::update_control_mode()
 		control_mode.flag_control_climb_rate_enabled = false;
 		control_mode.flag_control_position_enabled = false; //!status.in_transition_mode;
 		control_mode.flag_control_velocity_enabled = false; //!status.in_transition_mode;
-		control_mode.flag_control_newctrl_enabled = true;
+		control_mode.flag_control_rhoman_enabled = true;
 		break;
 
 
