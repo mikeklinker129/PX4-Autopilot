@@ -35,6 +35,8 @@ public:
 
 private:
 
+	void execute_parameter_update();
+
 	/**
 	 * Check for parameter changes and update them if needed.
 	 * @param parameter_update_sub uorb subscription to parameter_update
@@ -45,11 +47,16 @@ private:
 
 	DEFINE_PARAMETERS(
 		(ParamInt<px4::params::SYS_AUTOSTART>) _param_sys_autostart,   /**< example parameter */
-		(ParamInt<px4::params::SYS_AUTOCONFIG>) _param_sys_autoconfig  /**< another parameter */
-	)
+		(ParamInt<px4::params::SYS_AUTOCONFIG>) _param_sys_autoconfig,  /**< another parameter */
+		(ParamFloat<px4::params::R_CTRL_ROLL_P>) _param_rc_roll_p,
+		(ParamFloat<px4::params::R_CTRL_ROLL_P>) _param_rc_pitch_p,
+		(ParamFloat<px4::params::R_CTRL_ROLL_P>) _param_rc_yaw_p
+		)
+
 
 	// Subscriptions
 	uORB::Subscription	_parameter_update_sub{ORB_ID(parameter_update)};
+
 
 
 };

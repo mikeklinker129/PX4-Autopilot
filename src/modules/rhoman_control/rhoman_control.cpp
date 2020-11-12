@@ -173,6 +173,12 @@ void RhomanControl::run()
 			orb_copy(ORB_ID(vehicle_local_position_setpoint), veh_local_position_setpoint_sub, &veh_local_position_setpoint );
 			orb_copy(ORB_ID(vehicle_angular_velocity), veh_angular_velocity_sub, &veh_angular_velocity );
 
+
+
+			special_controler();
+
+
+
 			if (control_mode.flag_control_newctrl_enabled) {
 				actuator_outputs.output[0] = 1900;
 				actuator_outputs.output[1] = 1901;
@@ -199,6 +205,15 @@ void RhomanControl::run()
 
 }
 
+
+void RhomanControl::execute_parameter_update(){
+	PX4_INFO("Parameter Update");
+	_param_rc_roll_p.get();
+	_param_rc_pitch_p.get();
+	_param_rc_yaw_p.get();
+}
+
+
 void RhomanControl::parameters_update(bool force)
 {
 	// check for parameter updates
@@ -209,6 +224,8 @@ void RhomanControl::parameters_update(bool force)
 
 		// update parameters from storage
 		updateParams();
+
+		execute_parameter_update();
 	}
 }
 
