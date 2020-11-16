@@ -114,6 +114,9 @@ RhomanControl::RhomanControl(int example_param, bool example_flag)
 
 void RhomanControl::run()
 {
+
+	PX4_INFO("Rhoman Control Started")
+
 	// Subscriptions
 	int sensor_combined_sub = 				orb_subscribe(ORB_ID(sensor_combined));
 	int veh_control_mode_sub = 				orb_subscribe(ORB_ID(vehicle_control_mode));
