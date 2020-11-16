@@ -37,6 +37,7 @@
 
 #include <uORB/Publication.hpp>
 #include <px4_platform_common/log.h>
+#include <uORB/topics/rhoman_outputs.h>
 
 using namespace time_literals;
 
@@ -432,16 +433,26 @@ MixingOutput::setAndPublishActuatorOutputs(unsigned num_outputs, actuator_output
 {
 	actuator_outputs.noutputs = num_outputs;
 
-	for (size_t i = 0; i < num_outputs; ++i) {
-		actuator_outputs.output[i] = _current_output_value[i];
-	}
-
-
 	_vehicle_control_mode_sub.update(&vehicle_control_mode);
-	if (!vehicle_control_mode.flag_control_rhoman_enabled){
-		actuator_outputs.timestamp = hrt_absolute_time();
-		_outputs_pub.publish(actuator_outputs); // This is where the mixer outputs actuator outputs.
+
+
+	if (vehicle_control_mode.flag_control_rhoman_enabled){
+		rhoman_outputs_s rhoman_control_outputs{};
+		_rhoman_control_sub.update(&rhoman_control_outputs);
+
+		for (size_t i = 0; i < num_outputs; ++i) {
+			actuator_outputs.output[i] = rhoman_control_outputs.output[i];
+		}
+
+	} else{
+		for (size_t i = 0; i < num_outputs; ++i) {
+			actuator_outputs.output[i] = _current_output_value[i];
+		}
 	}
+
+	actuator_outputs.timestamp = hrt_absolute_time();
+	_outputs_pub.publish(actuator_outputs); // This is where the mixer outputs actuator outputs.	
+
 
 }
 

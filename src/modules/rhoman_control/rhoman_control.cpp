@@ -14,6 +14,8 @@
 #include <uORB/topics/vehicle_local_position.h>
 #include <uORB/topics/vehicle_local_position_setpoint.h>
 #include <uORB/topics/vehicle_angular_velocity.h>
+#include <uORB/topics/rhoman_outputs.h>
+
 
 
 
@@ -125,8 +127,13 @@ void RhomanControl::run()
 
 
 	// Publications
-	struct actuator_outputs_s 	actuator_outputs;
-	orb_advert_t outputs_pub = 	orb_advertise(ORB_ID(actuator_outputs), &actuator_outputs);
+	// struct actuator_outputs_s 	actuator_outputs;
+	// orb_advert_t outputs_pub = 	orb_advertise(ORB_ID(actuator_outputs), &actuator_outputs);
+
+	struct  rhoman_outputs_s 	rhoman_outputs;
+	orb_advert_t rhoman_outputs_pub = 	orb_advertise(ORB_ID(rhoman_outputs), &rhoman_outputs);
+
+
 
 	// initialize structures
 	struct sensor_combined_s 				sensor_combined;
@@ -194,16 +201,17 @@ void RhomanControl::run()
 
 
 			if (control_mode.flag_control_rhoman_enabled) {
-				actuator_outputs.output[0] = 1900;
-				actuator_outputs.output[1] = 1901;
-				actuator_outputs.output[2] = 1902;
-				actuator_outputs.output[3] = 1903;
-				actuator_outputs.noutputs = 4;
-				actuator_outputs.timestamp = hrt_absolute_time();
+				rhoman_outputs.output[0] = 1800;
+				rhoman_outputs.output[1] = 1801;
+				rhoman_outputs.output[2] = 1600;
+				rhoman_outputs.output[3] = 1600;
+				rhoman_outputs.noutputs = 4;
+				rhoman_outputs.timestamp = hrt_absolute_time();
 
-				orb_publish(ORB_ID(actuator_outputs), outputs_pub, &actuator_outputs);
+				orb_publish(ORB_ID(rhoman_outputs), rhoman_outputs_pub, &rhoman_outputs);
 				
 			}
+
 
 		}
 

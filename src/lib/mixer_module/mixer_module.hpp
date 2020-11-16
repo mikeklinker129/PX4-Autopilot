@@ -53,6 +53,8 @@
 #include <uORB/topics/parameter_update.h>
 #include <uORB/topics/test_motor.h>
 
+#include <uORB/topics/rhoman_outputs.h>
+
 /**
  * @class OutputModuleInterface
  * Base class for an output module.
@@ -238,6 +240,7 @@ private:
 
 	uORB::Subscription _armed_sub{ORB_ID(actuator_armed)};
 	uORB::Subscription _vehicle_control_mode_sub{ORB_ID(vehicle_control_mode)};
+	uORB::Subscription _rhoman_control_sub{ORB_ID(rhoman_outputs)};
 	uORB::SubscriptionCallbackWorkItem _control_subs[actuator_controls_s::NUM_ACTUATOR_CONTROL_GROUPS];
 
 	uORB::PublicationMulti<actuator_outputs_s> _outputs_pub{ORB_ID(actuator_outputs), ORB_PRIO_DEFAULT};
