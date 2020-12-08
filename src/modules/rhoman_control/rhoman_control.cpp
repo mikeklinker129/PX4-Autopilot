@@ -4,7 +4,7 @@
 #include <px4_platform_common/getopt.h>
 #include <px4_platform_common/log.h>
 #include <px4_platform_common/posix.h>
-
+#include <lib/ecl/geo/geo.h>
 #include <uORB/topics/parameter_update.h>
 #include <uORB/topics/sensor_combined.h>
 #include <uORB/topics/vehicle_attitude.h>
@@ -14,9 +14,13 @@
 #include <uORB/topics/vehicle_local_position.h>
 #include <uORB/topics/vehicle_local_position_setpoint.h>
 #include <uORB/topics/vehicle_angular_velocity.h>
+#include <uORB/topics/position_setpoint_triplet.h>
 #include <uORB/topics/rhoman_outputs.h>
 
-
+#include "Module0.cpp"
+#include "Module1.cpp"
+#include "Module2.cpp"
+#include "Module4.cpp"
 
 
 int RhomanControl::print_status()
@@ -33,14 +37,12 @@ int RhomanControl::custom_command(int argc, char *argv[])
 		print_usage("not running");
 		return 1;
 	}
-
 	// additional custom commands can be handled like this:
 	if (!strcmp(argv[0], "do-something")) {
 		get_instance()->do_something();
 		return 0;
 	}
 	 */
-
 	return print_usage("unknown command");
 }
 
@@ -78,26 +80,21 @@ RhomanControl *RhomanControl::instantiate(int argc, char *argv[])
 		case 'p':
 			example_param = (int)strtol(myoptarg, nullptr, 10);
 			break;
-
 		case 'f':
 			example_flag = true;
 			break;
-
 		case '?':
 			error_flag = true;
 			break;
-
 		default:
 			PX4_WARN("unrecognized flag");
 			error_flag = true;
 			break;
 		}
 	}
-
 	if (error_flag) {
 		return nullptr;
 	}
-
 	RhomanControl *instance = new RhomanControl(example_param, example_flag);
 
 	if (instance == nullptr) {
@@ -115,7 +112,10 @@ RhomanControl::RhomanControl(int example_param, bool example_flag)
 void RhomanControl::run()
 {
 
-	PX4_INFO("Rhoman Control Started")
+	PX4_INFO("Rhoman Control Started");
+
+	module0();
+
 
 	// Subscriptions
 	int sensor_combined_sub = 				orb_subscribe(ORB_ID(sensor_combined));
@@ -124,8 +124,8 @@ void RhomanControl::run()
 	int veh_local_position_sub = 			orb_subscribe(ORB_ID(vehicle_local_position));
 	int veh_local_position_setpoint_sub = 	orb_subscribe(ORB_ID(vehicle_local_position_setpoint));
 	int veh_angular_velocity_sub = 			orb_subscribe(ORB_ID(vehicle_angular_velocity));
-
-	
+	int pos_sp_triplet_sub = 				orb_subscribe(ORB_ID(position_setpoint_triplet));
+	// int home_position_sub = 				orb_subscribe(ORB_ID(home_position));
 	
 
 
@@ -137,7 +137,6 @@ void RhomanControl::run()
 	orb_advert_t rhoman_outputs_pub = 	orb_advertise(ORB_ID(rhoman_outputs), &rhoman_outputs);
 
 
-
 	// initialize structures
 	struct sensor_combined_s 				sensor_combined;
 	struct vehicle_control_mode_s 			control_mode;
@@ -145,6 +144,8 @@ void RhomanControl::run()
 	struct vehicle_local_position_s 		veh_local_position;
 	struct vehicle_local_position_setpoint_s veh_local_position_setpoint;
 	struct vehicle_angular_velocity_s 		veh_angular_velocity;
+	struct position_setpoint_triplet_s      pos_sp_triplet;
+	// struct home_position_s 					home_position;
 	
 	memset(&sensor_combined, 0, sizeof(sensor_combined));
 	memset(&control_mode, 0, sizeof(control_mode));
@@ -152,6 +153,8 @@ void RhomanControl::run()
 	memset(&veh_local_position, 0, sizeof(veh_local_position));
 	memset(&veh_local_position_setpoint, 0, sizeof(veh_local_position_setpoint));
 	memset(&veh_angular_velocity, 0, sizeof(veh_angular_velocity));
+	memset(&pos_sp_triplet, 0, sizeof(pos_sp_triplet));
+	// memset(&home_position, 0, sizeof(home_position));
 
 
 	// Main loop clocks off of Sensor Combined message. 
@@ -181,33 +184,43 @@ void RhomanControl::run()
 		} else if (fds[0].revents & POLLIN) {
 
 			// THIS IS OUR MAIN LOOP HERE. 
+
+			// if (!globallocalconverter_initialized()){
+			// 	orb_copy(ORB_ID(home_position), home_position_sub, &home_position);
+			// 	if (home_position.valid_alt && home_position.valid_hpos){
+			// 		globallocalconverter_init(home_position.lat, home_position.lon, home_position.alt);
+			// 	}
+		 //    }
 			
 			orb_copy(ORB_ID(sensor_combined), sensor_combined_sub, &sensor_combined);
 			orb_copy(ORB_ID(vehicle_control_mode), veh_control_mode_sub, &control_mode);
 			orb_copy(ORB_ID(vehicle_attitude), veh_attitude_sub, &veh_attitude);
 			orb_copy(ORB_ID(vehicle_local_position), veh_local_position_sub, &veh_local_position);
 			orb_copy(ORB_ID(vehicle_local_position_setpoint), veh_local_position_setpoint_sub, &veh_local_position_setpoint );
+			orb_copy(ORB_ID(position_setpoint_triplet), pos_sp_triplet_sub, &pos_sp_triplet);
 			orb_copy(ORB_ID(vehicle_angular_velocity), veh_angular_velocity_sub, &veh_angular_velocity );
+			orb_copy(ORB_ID(position_setpoint_triplet), pos_sp_triplet_sub, &pos_sp_triplet);
 
+
+			module1(&veh_attitude, &veh_angular_velocity, &veh_local_position);
+			module2(&pos_sp_triplet);
+			module4();
 
 			if (flag_state!=control_mode.flag_control_rhoman_enabled){
-				PX4_INFO("Switching Rhoman Flag to: %i", !flag_state );
+				PX4_INFO("Rhoman Flag Switch: %i", !flag_state );
 				flag_state =control_mode.flag_control_rhoman_enabled;
 			}
 
 
-			if (test_actuator_output_sub.updated()){
-				// PX4_INFO("Got New Values.");
-				// struct actuator_outputs_s test_actuators;
-
-			}
+			// PX4_INFO("%f  ", pitchdes);
 
 
 			if (control_mode.flag_control_rhoman_enabled) {
-				rhoman_outputs.output[0] = 1800;
-				rhoman_outputs.output[1] = 1801;
-				rhoman_outputs.output[2] = 1600;
-				rhoman_outputs.output[3] = 1600;
+				
+				rhoman_outputs.output[0] = 1700;
+				rhoman_outputs.output[1] = 1701;
+				rhoman_outputs.output[2] = 1700;
+				rhoman_outputs.output[3] = 1700;
 				rhoman_outputs.noutputs = 4;
 				rhoman_outputs.timestamp = hrt_absolute_time();
 
