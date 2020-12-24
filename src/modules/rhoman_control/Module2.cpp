@@ -264,12 +264,12 @@ void module2(const struct position_setpoint_triplet_s *pos_sp_triplet) {
     // kpz=2;
     // kdz=4;
 
-    kppitch=1; //2
+    kppitch=2; //2
     kdpitch=10; //20
     kproll=0;
-    kdroll=0;
-    kpyaw=500;
-    kdyaw=200;
+    kdroll=100;
+    kpyaw=0;
+    kdyaw=0;
     kpz=10;
     kdz=5;
 
