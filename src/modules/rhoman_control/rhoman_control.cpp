@@ -15,12 +15,17 @@
 #include <uORB/topics/vehicle_local_position_setpoint.h>
 #include <uORB/topics/vehicle_angular_velocity.h>
 #include <uORB/topics/position_setpoint_triplet.h>
+#include <uORB/topics/manual_control_setpoint.h>
 #include <uORB/topics/rhoman_outputs.h>
+#include <iostream>
 
 #include "Module0.cpp"
 #include "Module1.cpp"
 #include "Module2.cpp"
 #include "Module4.cpp"
+
+ #define MIN(X,Y)	((X) < (Y) ? (X) : (Y))
+ #define MAX(X,Y)	((X) < (Y) ? (Y) : (X))
 
 
 int RhomanControl::print_status()
@@ -126,8 +131,8 @@ void RhomanControl::run()
 	int veh_angular_velocity_sub = 			orb_subscribe(ORB_ID(vehicle_angular_velocity));
 	int pos_sp_triplet_sub = 				orb_subscribe(ORB_ID(position_setpoint_triplet));
 	// int home_position_sub = 				orb_subscribe(ORB_ID(home_position));
+	int manual_control_setpoint_sub =		orb_subscribe(ORB_ID(manual_control_setpoint));
 	
-
 
 	// Publications
 	// struct actuator_outputs_s 	actuator_outputs;
@@ -145,6 +150,7 @@ void RhomanControl::run()
 	struct vehicle_local_position_setpoint_s veh_local_position_setpoint;
 	struct vehicle_angular_velocity_s 		veh_angular_velocity;
 	struct position_setpoint_triplet_s      pos_sp_triplet;
+	struct manual_control_setpoint_s   		manual_control_sp;
 	// struct home_position_s 					home_position;
 	
 	memset(&sensor_combined, 0, sizeof(sensor_combined));
@@ -154,6 +160,7 @@ void RhomanControl::run()
 	memset(&veh_local_position_setpoint, 0, sizeof(veh_local_position_setpoint));
 	memset(&veh_angular_velocity, 0, sizeof(veh_angular_velocity));
 	memset(&pos_sp_triplet, 0, sizeof(pos_sp_triplet));
+	memset(&manual_control_sp, 0, sizeof(manual_control_sp));
 	// memset(&home_position, 0, sizeof(home_position));
 
 
@@ -200,6 +207,7 @@ void RhomanControl::run()
 			orb_copy(ORB_ID(position_setpoint_triplet), pos_sp_triplet_sub, &pos_sp_triplet);
 			orb_copy(ORB_ID(vehicle_angular_velocity), veh_angular_velocity_sub, &veh_angular_velocity );
 			orb_copy(ORB_ID(position_setpoint_triplet), pos_sp_triplet_sub, &pos_sp_triplet);
+			orb_copy(ORB_ID(manual_control_setpoint), manual_control_setpoint_sub, &manual_control_sp);
 
 
 			module1(&veh_attitude, &veh_angular_velocity, &veh_local_position);
@@ -212,21 +220,39 @@ void RhomanControl::run()
 			}
 
 
+			// PX4_INFO("%f ", (double) veh_local_position.vz);
+
 			// PX4_INFO("%f  ", pitchdes);
 
+				// Motor 1: front right
+				// motor 2: back left
+				// motor 3: front left
+				// motor 4: back right
 
-			if (control_mode.flag_control_rhoman_enabled) {
-				
-				rhoman_outputs.output[0] = 1700;
-				rhoman_outputs.output[1] = 1701;
-				rhoman_outputs.output[2] = 1700;
-				rhoman_outputs.output[3] = 1700;
+				// Thrusts
+				//t0: front right
+				//t1: back right
+				//t2: back left
+				//t3: front left
+				// FR-BR-BL-FL
+			if (1==1){
+				rhoman_outputs.output[0] = MAX(MIN(thrusts_r[0]*300/280.0 + 1200,1800),1200);
+				rhoman_outputs.output[1] = MAX(MIN(thrusts_r[2]*300/280.0 + 1200,1800),1200);
+				rhoman_outputs.output[2] = MAX(MIN(thrusts_r[3]*300/280.0 + 1200,1800),1200);
+				rhoman_outputs.output[3] = MAX(MIN(thrusts_r[1]*300/280.0 + 1200,1800),1200);
+				cout << rhoman_outputs.output[0] << " " << rhoman_outputs.output[1] << " " << rhoman_outputs.output[2] << " " <<rhoman_outputs.output[3] <<endl;
+
+				// rhoman_outputs.output[0] = 1501;
+				// rhoman_outputs.output[1] = 1502;
+				// rhoman_outputs.output[2] = 1503;
+				// rhoman_outputs.output[3] = 1504;
 				rhoman_outputs.noutputs = 4;
 				rhoman_outputs.timestamp = hrt_absolute_time();
 
+				// if (control_mode.flag_control_rhoman_enabled) {	
 				orb_publish(ORB_ID(rhoman_outputs), rhoman_outputs_pub, &rhoman_outputs);
-				
 			}
+			// }
 
 
 		}

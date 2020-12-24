@@ -9,6 +9,10 @@
 #include <lib/ecl/geo/geo.h>
 #include <math.h>
 #include "VariableDefinitions.h"
+#include <matrix/math.hpp>
+
+using matrix::wrap_2pi;
+
 
 #include <iostream>
 
@@ -42,8 +46,11 @@ void module2(const struct position_setpoint_triplet_s *pos_sp_triplet) {
         zdes = (double)z_float;
 
 
+
         distancetotarget = (double) get_distance_to_next_waypoint( veh_lat, veh_lon,  pos_sp_triplet->current.lat, pos_sp_triplet->current.lon);
-        yawdes = (double) get_bearing_to_next_waypoint( veh_lat, veh_lon,  pos_sp_triplet->current.lat, pos_sp_triplet->current.lon);
+        // yawdes = (double) get_bearing_to_next_waypoint( veh_lat, veh_lon,  pos_sp_triplet->current.lat, pos_sp_triplet->current.lon);
+
+        
 
         if (!PX4_ISFINITE(yawdes)){
             yawdes = 0.0;
@@ -53,11 +60,54 @@ void module2(const struct position_setpoint_triplet_s *pos_sp_triplet) {
         xdes = xm;
         ydes = ym;
         zdes = zm;
-        distancetotarget = 0.0;
         yawdes = 0.0;
     }
+
     //https://px4.github.io/Firmware-Doxygen/db/d35/geo_8h.html#a189032e49591f0ce0e1a6049e8446262
         
+    // Convert desired values from NED to ENU frame.
+
+    double temp_x_des = xdes;
+    double temp_y_des = ydes;
+
+    xdes = temp_y_des;
+    ydes = temp_x_des;
+    zdes = -zdes; 
+
+    xdes =  2.0;
+    ydes = 5.0;
+    zdes = 5.1;
+
+    if (PX4_ISFINITE(xdes)){
+        distancetotarget = sqrtf( (xdes-xm)*(xdes-xm) + (ydes-ym)*(ydes-ym) );
+
+        if (distancetotarget > 1.0){
+            yawdes = atan2(ydes-ym, xdes-xm);
+        } else {
+            yawdes = yawabsm;
+        }
+        
+    } else{
+        distancetotarget = 0.0;
+        yawdes = yawabsm;
+        xdes = xm;
+        ydes = ym;
+        zdes = zm;
+
+    }
+
+
+    
+
+    // PX4_INFO("desired x: %f   y:  %f   z: %f", xdes,ydes,zdes);
+    // PX4_INFO("mypose  x: %f   y:  %f   z: %f", xm,ym,zm);
+    // PX4_INFO("distance: %f" , distancetotarget);
+    // PX4_INFO("yawdes: %f   yaw: %f ", yawdes*180/M_PI, yawabsm*180/M_PI);
+
+
+    // yawdes = wrap_2pi(yawdes+2*M_PI);
+    // yawdes = wrap_2pi(M_PI/2.0-yawdes);
+    // yawdes = wrap_pi(yawdes);
 
     
     // cout<<pitchdes<<",   "<<rolldes<<",   "<<yawdes<<endl;
@@ -68,6 +118,28 @@ void module2(const struct position_setpoint_triplet_s *pos_sp_triplet) {
 
     // This sections determines the angles necessary to reach the desired position relative to the current position
     // and yaw. (xm,ym,zm,yawabs)
+
+
+
+
+    // yawdes = 0.0;
+
+    // yawabsm = 0;
+    // pitchm = 0;
+    // rollm = 0;
+    // pitchdotm = 0;
+    // rolldotm = 0;
+    // yawabsdotm = 0;
+    // xm = 0;
+    // ym = 0;
+    // zm = 2;
+    // zdotm = 0;
+    // distancetotarget = 0.0;
+
+    PX4_INFO("Yaw: %f Pitch: %f  Roll: %f pitchdot: %f  rolldot: %f  yawabsdot: %f", yawabsm*180/M_PI, pitchm, rollm, pitchdotm, rolldotm, yawabsdotm );
+    PX4_INFO("xm: %f  ym: %f  zm: %f  zdot: %f", xm, ym, zm, zdotm );
+    PX4_INFO("xdes: %f  ydes: %f  zdes: %f  yawdes: %f", xdes, ydes, zdes, yawdes*180/M_PI);
+    PX4_INFO("distancetotarget: %f", distancetotarget);
 
     // Storing old distance to target value.
     distancetotargetprev = distancetotarget; // [m]
@@ -164,11 +236,17 @@ void module2(const struct position_setpoint_triplet_s *pos_sp_triplet) {
 
     // Adjusting motor parameters accordingly to get the final x,y,z values needed for the lower level controller.
     for (int i = 0; i < Nmotors; i++) {
-        motors[i].x = motors[i].zg-dcgx;
-        motors[i].y = motors[i].zg-dcgy;
+        motors[i].x = motors[i].xg-dcgx;
+        motors[i].y = motors[i].yg-dcgy;
         motors[i].z = motors[i].zg-dcgz;
+
+
+
     }
 
+
+
+     PX4_INFO("pitchdes: %f   rolldes: %f  yawmove: %f", pitchdes, rolldes, yawmove);
 
 
     // Module 3
@@ -176,13 +254,23 @@ void module2(const struct position_setpoint_triplet_s *pos_sp_triplet) {
     // Set tuning constants for lower level controller. These are some possible values.
     // Their absolute values are not particularly important, but their relative scaling's are.
     // THESE WILL BE DRONE SPECIFIC. Exactly where we are pulling them from is TBD, and will be Module 3.
-    kppitch=30;
-    kdpitch=80;
-    kproll=30;
-    kdroll=80;
-    kpyaw=2000;
-    kdyaw=400;
-    kpz=1;
-    kdz=3;
+
+    // kppitch=180;
+    // kdpitch=160;
+    // kproll=180;
+    // kdroll=160;
+    // kpyaw=1600;
+    // kdyaw=800;
+    // kpz=2;
+    // kdz=4;
+
+    kppitch=1; //2
+    kdpitch=10; //20
+    kproll=0;
+    kdroll=0;
+    kpyaw=500;
+    kdyaw=200;
+    kpz=10;
+    kdz=5;
 
 }

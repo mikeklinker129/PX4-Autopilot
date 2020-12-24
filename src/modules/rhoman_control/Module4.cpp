@@ -17,7 +17,9 @@ using namespace std;
 using namespace Eigen;
 
 
+// add comment for how to do this. 
 
+// https://gist.github.com/pshriwise/67c2ae78e5db3831da38390a8b2a209f
 
 // method for calculating the pseudo-Inverse as recommended by Eigen developers
 template<typename _Matrix_Type_>
@@ -36,7 +38,7 @@ _Matrix_Type_ pseudoInverse(const _Matrix_Type_ &a, double epsilon = std::numeri
 void module4() {
 
     //VectorXf thrusts(Nmotors);
-    Vector4d thrusts;
+    
     // Determining the number of extra constraint equations.
 
     int row_count = 0;
@@ -46,6 +48,9 @@ void module4() {
             row_count += 1;
         }
     }
+
+    
+
     //cout<<"NMotors are: "<<Nmotors<<endl;
 
     /* row_count will also have a portion to account for non motor-specific constraint equations from ML algorithm.
@@ -70,7 +75,7 @@ void module4() {
         A(0, i) = -(1 / icpitch) * motors[i].x;
         A(1, i) = -(1 / icroll) * motors[i].y;
         A(2, i) = -(motors[i].irotor * cos(pitchm) * motors[i].dir / (icyaw * motors[i].kfrotor)) - (sin(pitchm) / icroll) * motors[i].y;
-        A(3, i) = 1 / g; // This needs to be 1 / m. Right now g is a place holder. Confirm 'm' with James.
+        A(3, i) = 1 / m; // This needs to be 1 / m. Right now g is a place holder. Confirm 'm' with James.
 
         // Add individual motor-specific constraint equations, if the exist.
         if (motors[i].weighting != 0) {
@@ -79,6 +84,7 @@ void module4() {
             row_index += 1;
         }
     }
+
 
 
 
@@ -99,26 +105,31 @@ void module4() {
     // Ritika - Need to implement the pinv function below to calc thrusts = pinv(A' * A) * (A' * b)
     // If A is L x Nmotors and b is L x 1 or simply L, then thrusts will be of dimensions Nmotors x 1.
 
+
+    // cout<<A<<endl;
+    // cout<<b<<endl;
+
     // thrusts = ((A.transpose()*A).inverse())*(A.transpose()*b);
     
     Matrix4d C = A.transpose()*A;
 
-    cout<< "==========================" << endl;
+    
 
-    cout<< C << endl << endl;
+    // cout<< C << endl << endl;
 
 
     Matrix4d D = pseudoInverse(C);
 
-    cout<< D << endl << endl;
+    // cout<< D << endl << endl;
 
     // Matrix4d D = C.completeOrthogonalDecomposition().pseudoInverse();
 
     Vector4d E = (A.transpose()*b);
-    thrusts = D * E;
+    thrusts_r = D * E;
 
-    // cout<<thrusts(0)<<"   "<<thrusts(1)<<"   "<<thrusts(2)<<"   "<<thrusts(3)<<endl;
 
+    // cout<<thrusts_r(0)<<"   "<<thrusts_r(1)<<"   "<<thrusts_r(2)<<"   "<<thrusts_r(3)<<endl;
+    cout<< "==========================" << endl;
     // Look up matlab pseudo-inverse (pdotinv)
 
     // do these thrust values need to be assigned to motors[i].thrustdes parameter?

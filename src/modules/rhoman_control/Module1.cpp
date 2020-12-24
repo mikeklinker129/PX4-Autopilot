@@ -8,6 +8,12 @@
 #include "Module1.hpp"
 #include "VariableDefinitions.h"
 #include "KalmanLinearFilter.h"
+#include <lib/ecl/geo/geo.h>
+
+#include <matrix/math.hpp>
+
+using matrix::wrap_2pi;
+using matrix::wrap_pi;
 
 
 // Function to locate the minimum value of an array.
@@ -42,6 +48,7 @@ void module1(   const struct vehicle_attitude_s *att,
     // double val = att_euler.theta();
     
 
+
     // First read in new sensor data if available. This is currently done by checking if enough time has passed
     // since the last check for each sensor. If it has, then read the new value and update the storage arrays defined
     // in module 0 appropriately.
@@ -59,8 +66,8 @@ void module1(   const struct vehicle_attitude_s *att,
 
         // New Values are read here. Initialized with place holder.
         yawabsm1 = att_euler.psi();     // Yaw reading goes here. [rad]
-        pitchm1 = att_euler.theta();     // Pitch reading goes here. [rad]
-        rollm1 = att_euler.psi();       // Roll reading goes here. [rad]
+        pitchm1 = (double) att_euler.theta();// * M_PI/180.0;     // Pitch reading goes here. [rad]
+        rollm1 =  (double) att_euler.phi();;// * M_PI/180.0;       // Roll reading goes here. [rad]
         pitchdotm1 = ang_vel->xyz[0];   // Pitch rate reading goes here. [rad/s]
         rolldotm1 = ang_vel->xyz[1];    // Roll rate reading goes here. [rad/s]
         yawabsdotm1 = ang_vel->xyz[2];  // Yaw rate reading goes here. [rad/s]
@@ -194,6 +201,45 @@ void module1(   const struct vehicle_attitude_s *att,
         zdotm = zdotm1;
 
     }
+
+
+    // Convert to ENU Convention
+    // yawabsm = wrap_2pi(M_PI/2.0-yawabsm);
+    yawabsm = wrap_2pi(yawabsm+2*M_PI);
+    yawabsm = wrap_2pi(M_PI/2.0-yawabsm);
+    yawabsm = wrap_pi(yawabsm);
+    yawabsdotm = -yawabsdotm;
+    
+    pitchm = -pitchm;
+    rollm = rollm;
+
+    pitchdotm = -pitchdotm;
+    rolldotm = rolldotm;
+    
+
+    double old_x = xm;
+    double old_y = ym;
+
+    xm = old_y;
+    ym = old_x;
+    zm = -zm;
+
+    zdotm = -zdotm;
+
+        // yawabsm = yawabsm1;
+        // pitchm = pitchm1;
+        // rollm = rollm1;
+        // pitchdotm = pitchdotm1;
+        // rolldotm = rolldotm1;
+        // yawabsdotm = yawabsdotm1;
+        // xm = xm1;
+        // ym = ym1;
+        // zm = zm1;
+        // zdotm = zdotm1;
+
+
+    // PX4_INFO("Yaw: %f Pitch: %f  Roll: %f pitchdot: %f  rolldot: %f  yawabsdot: %f", yawabsm, pitchm, rollm, pitchdotm, rolldotm, yawabsdotm );
+    // PX4_INFO("xm: %f  ym: %f  zm: %f  zdot: %f", xm, ym, zm, zdotm );
 
 
 }

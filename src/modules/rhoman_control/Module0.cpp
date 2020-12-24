@@ -21,9 +21,9 @@ void module0() {
     dcgx = 0.0; // CG deviation from geometric center in X. This will shift as payload does. [meters]
     dcgy = 0.0; // CG deviation from geometric center in Y. This will shift as payload does. [meters]
     dcgz = 0.0; // CG deviation from geometric center in Z. This will shift as payload does. [meters]
-    icpitch = 1.0; // Moment of inertia in pitch of craft+payload. [kg*meters^2]
-    icroll =1.0; // Moment of inertia in roll of craft+payload. [kg*meters^2]
-    icyaw = 1.0;  // Moment of inertia in yaw of craft+payload. [kg*meters^2]
+    icpitch = 36.9377; // Moment of inertia in pitch of craft+payload. [kg*meters^2]
+    icroll = 36.9377; // Moment of inertia in roll of craft+payload. [kg*meters^2]
+    icyaw = 37.4336;  // Moment of inertia in yaw of craft+payload. [kg*meters^2]
     g = 9.81;     // Gravitational Constant. [m/s^2]
     Nmotors = 4;  // How many motors does the craft actually have. [>=1]
 
@@ -31,22 +31,22 @@ void module0() {
 
     double rnom = 0.925;
     double snom = 1.016;
-    double m = 45.5+14.3+15+40;
+    m = 114.8;
     double Tmax = 36.5*9.81;
     double Tmin=0;
-    double payloadheight = -24 * .0254; // Meters above center
-    double cmz = payloadheight / m;
 
-    icpitch = 15*((rnom/2)*(rnom/2)+cmz*cmz) + 4*10*(  pow(rnom/((double) sqrtf(2)),2)  +cmz*cmz) + 45.5*pow((payloadheight-cmz),2); // Contribution from payload
+    // double payloadheight = -24 * .0254; // Meters above center
+    // double cmz = payloadheight / m;
+    //icpitch = 15*((rnom/2)*(rnom/2)+cmz*cmz) + 4*10*(  pow(rnom/((double) sqrtf(2)),2)  +cmz*cmz) + 45.5*pow((payloadheight-cmz),2); // Contribution from payload
         
 
-    icroll=icpitch;  // Symmetric in roll/pitch
-    icyaw = 4*10*rnom*rnom+15*(rnom/2)*(rnom/2); // Estimate
+    //icroll=icpitch;  // Symmetric in roll/pitch
+    //icyaw = 4*10*rnom*rnom+15*(rnom/2)*(rnom/2); // Estimate
     // Creating structure of size Nmotors.
     //craftmotors motors[Nmotors];
 
-    double i1mrotor = 0.3*pow((39.37/42),5); // Moment of inertia of a 1 m rotor; % Normally 0.3
-    double kf1mrotor = 0.00592*pow((39.37/42),4); // Kf for a typical 1 m rotor;
+    // double i1mrotor = 0.3*pow((39.37/42),5); // Moment of inertia of a 1 m rotor; % Normally 0.3
+    // double kf1mrotor = 0.00592*pow((39.37/42),4); // Kf for a typical 1 m rotor;
 
     // Initializing objects of motors. Initialized with place holder values.
     for (int i = 0; i < Nmotors; i++) {
@@ -63,8 +63,8 @@ void module0() {
         motors[i].size = snom; // Prop diameter. [meters]
         motors[i].Tmax = Tmax; // Maximum thrust of prop. [Newtons]
         motors[i].Tmin = Tmin; // Minimum thrust of prop. Can be negative. [Newtons]
-        motors[i].irotor = i1mrotor*pow(snom,5); // Moment of inertia of rotor. [kg*meters^2]
-        motors[i].kfrotor = kf1mrotor*pow(snom,4); // Combined thrust coefficient of propeller. [N/(rad/s)]
+        motors[i].irotor = 0.2351; //i1mrotor*pow(snom,5); // Moment of inertia of rotor. [kg*meters^2]
+        motors[i].kfrotor = 0.0049; //kf1mrotor*pow(snom,4); // Combined thrust coefficient of propeller. [N/(rad/s)]
         motors[i].kq = 0.007;   // Propeller torque constant. [N-m/N]
 
         motors[i].eta = 0.9;  // Estimated combined efficiency of ESC-motor combination. [0-1]
@@ -83,6 +83,8 @@ void module0() {
        // printf("%f     ", motors[i].irotor);
        // printf("%f     ", motors[i].kfrotor);
        // printf("%f     ", motors[i].ang);
+       // printf("%f     ", motors[i].xg);
+       // printf("%f     ", motors[i].yg); 
        // printf("\n");
     }
 

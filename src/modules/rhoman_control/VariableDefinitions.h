@@ -7,10 +7,12 @@
 
 #include <stdio.h>
 
+#include "../../lib/eigen/eigen-master/Eigen/Dense"
 
+using namespace Eigen;
 
 // Module 0 Variables
-double dcgx, dcgy, dcgz, icpitch, icroll, icyaw, g;
+double dcgx, dcgy, dcgz, icpitch, icroll, icyaw, g, m;
 double *angts, *locts, *altts;
 double anghz, angt, angdt, accelu, angu, dangu, lochz, locdt, loct, locu, althz, altdt, altu, altt, daltu;
 int Nmotors, kalmanvals;
@@ -41,6 +43,9 @@ float x_float, y_float, z_float;
 
 // Module 3 Variables
 double kppitch, kdpitch, kproll, kdroll, kpyaw, kdyaw, kpz, kdz;
+
+
+Vector4d thrusts_r;
 
 
 #endif //RHOMANAEROSPACEMODULES_VARIABLEDEFINITIONS_H
