@@ -139,6 +139,14 @@ private:
 	bool _is_tailsitter{false};
 
 	DEFINE_PARAMETERS(
+
+
+		(ParamFloat<px4::params::REGENT_PITCH_SP>) _param_fw_regent_pitch_sp,
+		(ParamFloat<px4::params::REGENT_ALT_P>) _param_fw_regent_alt_p,
+		(ParamFloat<px4::params::REGENT_ALT_I>) _param_fw_regent_alt_i,
+		(ParamFloat<px4::params::REGENT_ALT_D>) _param_fw_regent_alt_d,
+
+
 		(ParamFloat<px4::params::FW_ACRO_X_MAX>) _param_fw_acro_x_max,
 		(ParamFloat<px4::params::FW_ACRO_Y_MAX>) _param_fw_acro_y_max,
 		(ParamFloat<px4::params::FW_ACRO_Z_MAX>) _param_fw_acro_z_max,
@@ -217,6 +225,7 @@ private:
 
 	void control_flaps(const float dt);
 
+
 	/**
 	 * Update our local parameter cache.
 	 */
@@ -228,5 +237,6 @@ private:
 	void		vehicle_rates_setpoint_poll();
 	void		vehicle_land_detected_poll();
 
+	float 		get_altitude_control_inputs();
 	float 		get_airspeed_and_update_scaling();
 };

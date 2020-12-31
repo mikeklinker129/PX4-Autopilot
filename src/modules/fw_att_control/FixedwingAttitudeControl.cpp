@@ -132,6 +132,11 @@ FixedwingAttitudeControl::vehicle_control_mode_poll()
 	}
 }
 
+
+float FixedwingAttitudeControl::get_altitude_control_inputs(){
+	return 0.1;
+}
+
 void
 FixedwingAttitudeControl::vehicle_manual_poll()
 {
@@ -160,6 +165,16 @@ FixedwingAttitudeControl::vehicle_manual_poll()
 					_att_sp.roll_body = _manual_control_setpoint.y * radians(_param_fw_man_r_max.get()) + radians(_param_fw_rsp_off.get());
 					_att_sp.roll_body = constrain(_att_sp.roll_body,
 								      -radians(_param_fw_man_r_max.get()), radians(_param_fw_man_r_max.get()));
+
+
+					// if AUX1 is low -> run the altitude controller. Constrain the output. 
+
+					const float new_pitch = get_altitude_control_inputs();
+
+					PX4_INFO("%f", (double) new_pitch);
+
+					// if AUX1 is high -> use the manual setpoint for the pitch desired. 
+
 
 					_att_sp.pitch_body = -_manual_control_setpoint.x * radians(_param_fw_man_p_max.get())
 							     + radians(_param_fw_psp_off.get());
@@ -236,6 +251,9 @@ FixedwingAttitudeControl::vehicle_land_detected_poll()
 		}
 	}
 }
+
+
+
 
 float FixedwingAttitudeControl::get_airspeed_and_update_scaling()
 {

@@ -46,6 +46,63 @@
  */
 
 /**
+ * REGENT Pitch Setpoint
+ *
+ * setpoint1
+ *
+ * @unit s
+ * @min 0.0
+ * @max 10.0
+ * @decimal 2
+ * @increment 0.01
+ * @group FW Attitude Control
+ */
+PARAM_DEFINE_FLOAT(REGENT_PITCH_SP, 0.4f);
+
+/**
+ * REGENT Alt Proportional
+ *
+ * setpoint2
+ *
+ * @unit s
+ * @min 0.0
+ * @max 10.0
+ * @decimal 2
+ * @increment 0.01
+ * @group FW Attitude Control
+ */
+PARAM_DEFINE_FLOAT(REGENT_ALT_P, 0.4f);
+
+/**
+ * REGENT Alt Integral
+ *
+ * setpoint3
+ *
+ * @unit s
+ * @min 0.0
+ * @max 10.0
+ * @decimal 2
+ * @increment 0.01
+ * @group FW Attitude Control
+ */
+PARAM_DEFINE_FLOAT(REGENT_ALT_I, 0.1f);
+/**
+ * REGENT Alt Deriv
+ *
+ * setpoint4
+ *
+ * @unit s
+ * @min 0.0
+ * @max 10.0
+ * @decimal 2
+ * @increment 0.01
+ * @group FW Attitude Control
+ */
+PARAM_DEFINE_FLOAT(REGENT_ALT_D, 0.2f);
+
+
+
+/**
  * Attitude Roll Time Constant
  *
  * This defines the latency between a roll step input and the achieved setpoint
