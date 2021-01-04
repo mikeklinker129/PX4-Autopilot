@@ -57,7 +57,9 @@ void module1(   const struct vehicle_attitude_s *att,
     // becomes [4 5 6 7 3 4 5 6 7 8] and locts would be [.2 .3 .4 .5 .6 .7 .8 .9 .10 .11].
 
     // Reading the current system time. [seconds] - Initialized with a place holder.
-    times = hrt_absolute_time()/1000000.0;
+
+    times = hrt_absolute_time()/1000000.0; //remove start time
+
 
     // PX4_INFO("%f", times);
 
@@ -68,8 +70,8 @@ void module1(   const struct vehicle_attitude_s *att,
         yawabsm1 = att_euler.psi();     // Yaw reading goes here. [rad]
         pitchm1 = (double) att_euler.theta();// * M_PI/180.0;     // Pitch reading goes here. [rad]
         rollm1 =  (double) att_euler.phi();;// * M_PI/180.0;       // Roll reading goes here. [rad]
-        pitchdotm1 = ang_vel->xyz[0];   // Pitch rate reading goes here. [rad/s]
-        rolldotm1 = ang_vel->xyz[1];    // Roll rate reading goes here. [rad/s]
+        pitchdotm1  = ang_vel->xyz[1];   // Pitch rate reading goes here. [rad/s]
+        rolldotm1   = ang_vel->xyz[0];    // Roll rate reading goes here. [rad/s]
         yawabsdotm1 = ang_vel->xyz[2];  // Yaw rate reading goes here. [rad/s]
 
         // Updating Storage Arrays
@@ -208,10 +210,11 @@ void module1(   const struct vehicle_attitude_s *att,
     yawabsm = wrap_2pi(yawabsm+2*M_PI);
     yawabsm = wrap_2pi(M_PI/2.0-yawabsm);
     yawabsm = wrap_pi(yawabsm);
+
     yawabsdotm = -yawabsdotm;
     
     pitchm = -pitchm;
-    rollm = rollm;
+    // rollm = rollm;
 
     pitchdotm = -pitchdotm;
     rolldotm = rolldotm;

@@ -30,7 +30,7 @@ void module2(const struct position_setpoint_triplet_s *pos_sp_triplet) {
 
     if (globallocalconverter_initialized()){
         globallocalconverter_tolocal(pos_sp_triplet->current.lat, pos_sp_triplet->current.lon, pos_sp_triplet->current.alt, &x_float, &y_float, &z_float);
-        globallocalconverter_toglobal(xm, ym, zm,   &veh_lat, &veh_lon, &veh_alt);
+        // globallocalconverter_toglobal(xm, ym, zm,   &veh_lat, &veh_lon, &veh_alt);
         xdes = (double)x_float;
         ydes = (double)y_float;
         zdes = (double)z_float;
@@ -227,11 +227,11 @@ void module2(const struct position_setpoint_triplet_s *pos_sp_triplet) {
     // kpz=2;
     // kdz=4;
 
-    kppitch=2; //2
+    kppitch=6; //2
     kdpitch=10; //20
-    kproll=0;
-    kdroll=00;
-    kpyaw=100;
+    kproll=6;
+    kdroll=10;
+    kpyaw=1000;
     kdyaw=800;
     kpz=10;
     kdz=5;
