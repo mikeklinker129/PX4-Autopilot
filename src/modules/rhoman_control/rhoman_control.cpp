@@ -191,13 +191,6 @@ void RhomanControl::run()
 		} else if (fds[0].revents & POLLIN) {
 
 			// THIS IS OUR MAIN LOOP HERE. 
-
-			// if (!globallocalconverter_initialized()){
-			// 	orb_copy(ORB_ID(home_position), home_position_sub, &home_position);
-			// 	if (home_position.valid_alt && home_position.valid_hpos){
-			// 		globallocalconverter_init(home_position.lat, home_position.lon, home_position.alt);
-			// 	}
-		 //    }
 			
 			orb_copy(ORB_ID(sensor_combined), sensor_combined_sub, &sensor_combined);
 			orb_copy(ORB_ID(vehicle_control_mode), veh_control_mode_sub, &control_mode);
@@ -206,7 +199,6 @@ void RhomanControl::run()
 			orb_copy(ORB_ID(vehicle_local_position_setpoint), veh_local_position_setpoint_sub, &veh_local_position_setpoint );
 			orb_copy(ORB_ID(position_setpoint_triplet), pos_sp_triplet_sub, &pos_sp_triplet);
 			orb_copy(ORB_ID(vehicle_angular_velocity), veh_angular_velocity_sub, &veh_angular_velocity );
-			orb_copy(ORB_ID(position_setpoint_triplet), pos_sp_triplet_sub, &pos_sp_triplet);
 			orb_copy(ORB_ID(manual_control_setpoint), manual_control_setpoint_sub, &manual_control_sp);
 
 
@@ -219,41 +211,34 @@ void RhomanControl::run()
 				flag_state =control_mode.flag_control_rhoman_enabled;
 			}
 
-
-			// PX4_INFO("%f ", (double) veh_local_position.vz);
-
-			// PX4_INFO("%f  ", pitchdes);
-
+				// PX4 Motor Mapping: 
 				// Motor 1: front right
 				// motor 2: back left
 				// motor 3: front left
 				// motor 4: back right
 
-				// Thrusts
+				// Thrusts Output From Module 4. 
 				//t0: front right
 				//t1: back right
 				//t2: back left
 				//t3: front left
 				// FR-BR-BL-FL
-			if (1==1){
-				rhoman_outputs.output[0] = MAX(MIN(thrusts_r[0]*300/280.0 + 1200,1800),1200);
-				rhoman_outputs.output[1] = MAX(MIN(thrusts_r[2]*300/280.0 + 1200,1800),1200);
-				rhoman_outputs.output[2] = MAX(MIN(thrusts_r[3]*300/280.0 + 1200,1800),1200);
-				rhoman_outputs.output[3] = MAX(MIN(thrusts_r[1]*300/280.0 + 1200,1800),1200);
-				cout << rhoman_outputs.output[0] << " " << rhoman_outputs.output[1] << " " << rhoman_outputs.output[2] << " " <<rhoman_outputs.output[3] <<endl;
 
-				// rhoman_outputs.output[0] = 1501;
-				// rhoman_outputs.output[1] = 1502;
-				// rhoman_outputs.output[2] = 1503;
-				// rhoman_outputs.output[3] = 1504;
-				rhoman_outputs.noutputs = 4;
-				rhoman_outputs.timestamp = hrt_absolute_time();
+			rhoman_outputs.output[0] = MAX(MIN(thrusts_r[0]*300/280.0 + 1200,1800),1200);
+			rhoman_outputs.output[1] = MAX(MIN(thrusts_r[2]*300/280.0 + 1200,1800),1200);
+			rhoman_outputs.output[2] = MAX(MIN(thrusts_r[3]*300/280.0 + 1200,1800),1200);
+			rhoman_outputs.output[3] = MAX(MIN(thrusts_r[1]*300/280.0 + 1200,1800),1200);
+			// cout << rhoman_outputs.output[0] << " " << rhoman_outputs.output[1] << " " << rhoman_outputs.output[2] << " " <<rhoman_outputs.output[3] <<endl;
 
-				// if (control_mode.flag_control_rhoman_enabled) {	
-				orb_publish(ORB_ID(rhoman_outputs), rhoman_outputs_pub, &rhoman_outputs);
-			}
-			// }
+			// rhoman_outputs.output[0] = 1501;
+			// rhoman_outputs.output[1] = 1502;
+			// rhoman_outputs.output[2] = 1503;
+			// rhoman_outputs.output[3] = 1504;
+			rhoman_outputs.noutputs = 4;
+			rhoman_outputs.timestamp = hrt_absolute_time();
 
+			orb_publish(ORB_ID(rhoman_outputs), rhoman_outputs_pub, &rhoman_outputs);
+	
 
 		}
 

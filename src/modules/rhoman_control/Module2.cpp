@@ -28,16 +28,6 @@ void module2(const struct position_setpoint_triplet_s *pos_sp_triplet) {
     // or pulled directly from a timestamped or geo-stamped mission profile.
     // Place holder value.
 
-    // msg.lat_int = pos_sp_triplet.current.lat * 1e7;
-    // msg.lon_int = pos_sp_triplet.current.lon * 1e7;
-    // msg.alt = pos_sp_triplet.current.alt;
-
-
-
-    // xdes = pos_sp_triplet->current.x;
-    // ydes = pos_sp_triplet->current.y;
-    // zdes = pos_sp_triplet->current.z;
-
     if (globallocalconverter_initialized()){
         globallocalconverter_tolocal(pos_sp_triplet->current.lat, pos_sp_triplet->current.lon, pos_sp_triplet->current.alt, &x_float, &y_float, &z_float);
         globallocalconverter_toglobal(xm, ym, zm,   &veh_lat, &veh_lon, &veh_alt);
@@ -45,13 +35,9 @@ void module2(const struct position_setpoint_triplet_s *pos_sp_triplet) {
         ydes = (double)y_float;
         zdes = (double)z_float;
 
-
-
-        distancetotarget = (double) get_distance_to_next_waypoint( veh_lat, veh_lon,  pos_sp_triplet->current.lat, pos_sp_triplet->current.lon);
-        // yawdes = (double) get_bearing_to_next_waypoint( veh_lat, veh_lon,  pos_sp_triplet->current.lat, pos_sp_triplet->current.lon);
-
-        
-
+        // Dont use this. It is mode dependent. 
+        //distancetotarget = (double) get_distance_to_next_waypoint( veh_lat, veh_lon,  pos_sp_triplet->current.lat, pos_sp_triplet->current.lon);
+    
         if (!PX4_ISFINITE(yawdes)){
             yawdes = 0.0;
         }
@@ -75,10 +61,15 @@ void module2(const struct position_setpoint_triplet_s *pos_sp_triplet) {
     zdes = -zdes; 
 
     xdes =  2.0;
-    ydes = 5.0;
+    ydes = 50.0;
     zdes = 5.1;
 
+
+    // Storing old distance to target value.
+    distancetotargetprev = distancetotarget; // [m]
+
     if (PX4_ISFINITE(xdes)){
+
         distancetotarget = sqrtf( (xdes-xm)*(xdes-xm) + (ydes-ym)*(ydes-ym) );
 
         if (distancetotarget > 1.0){
@@ -96,34 +87,9 @@ void module2(const struct position_setpoint_triplet_s *pos_sp_triplet) {
 
     }
 
-
-    
-
-    // PX4_INFO("desired x: %f   y:  %f   z: %f", xdes,ydes,zdes);
-    // PX4_INFO("mypose  x: %f   y:  %f   z: %f", xm,ym,zm);
-    // PX4_INFO("distance: %f" , distancetotarget);
-    // PX4_INFO("yawdes: %f   yaw: %f ", yawdes*180/M_PI, yawabsm*180/M_PI);
-
-
-    // yawdes = wrap_2pi(yawdes+2*M_PI);
-    // yawdes = wrap_2pi(M_PI/2.0-yawdes);
-    // yawdes = wrap_pi(yawdes);
-
-    
-    // cout<<pitchdes<<",   "<<rolldes<<",   "<<yawdes<<endl;
-
-    // xdes = local_pos_sp->x; // Desired X position at current time. [m]
-    // ydes = local_pos_sp->y; // Desired Y position at current time. [m]
-    // zdes = local_pos_sp->z; // Desired Z position at current time. [m]
-
     // This sections determines the angles necessary to reach the desired position relative to the current position
     // and yaw. (xm,ym,zm,yawabs)
-
-
-
-
     // yawdes = 0.0;
-
     // yawabsm = 0;
     // pitchm = 0;
     // rollm = 0;
@@ -141,8 +107,7 @@ void module2(const struct position_setpoint_triplet_s *pos_sp_triplet) {
     PX4_INFO("xdes: %f  ydes: %f  zdes: %f  yawdes: %f", xdes, ydes, zdes, yawdes*180/M_PI);
     PX4_INFO("distancetotarget: %f", distancetotarget);
 
-    // Storing old distance to target value.
-    distancetotargetprev = distancetotarget; // [m]
+
 
     // Calculating new distance to target.
     // distancetotarget = pow(sqrtf((xdes - xm)), 2) + pow((ydes - ym), 2); // [m]
@@ -187,8 +152,8 @@ void module2(const struct position_setpoint_triplet_s *pos_sp_triplet) {
     kpdttdot = 15;        // Default value of tuning constant.
 
     // These variables needs to be changed into a function.
-    minpitchangle = -30;  // Function that determines a minimum allowable safe pitch angle TBD. -30 is a safe value. -70 is risky [degrees]
-    maxpitchangle = 30;   // Function that determines a maximum allowable safe pitch angle TBD. 30 is a safe value. 70 is risky [degrees]
+    minpitchangle = -20;  // Function that determines a minimum allowable safe pitch angle TBD. -30 is a safe value. -70 is risky [degrees]
+    maxpitchangle = 20;   // Function that determines a maximum allowable safe pitch angle TBD. 30 is a safe value. 70 is risky [degrees]
     pitchdes = copysign(1.0,cos(yawmove)) * fminl (fminl (fmaxl(kpdtt * distancetotarget + kpdttdot * (distancetotarget - distancetotargetprev) / dt, minpitchangle) , maxpitchangle), 180 * pitchm / 3.1415 + 100) * (3.1415 / 180 ) * fabs(cos(yawmove));
 
     // Checking whether we are pointing approximately at target, if yes, setting roll to zero.
@@ -244,8 +209,6 @@ void module2(const struct position_setpoint_triplet_s *pos_sp_triplet) {
 
     }
 
-
-
      PX4_INFO("pitchdes: %f   rolldes: %f  yawmove: %f", pitchdes, rolldes, yawmove);
 
 
@@ -267,9 +230,9 @@ void module2(const struct position_setpoint_triplet_s *pos_sp_triplet) {
     kppitch=2; //2
     kdpitch=10; //20
     kproll=0;
-    kdroll=100;
-    kpyaw=0;
-    kdyaw=0;
+    kdroll=00;
+    kpyaw=100;
+    kdyaw=800;
     kpz=10;
     kdz=5;
 
