@@ -86,13 +86,15 @@ void module4() {
     }
 
 
-
+    PX4_INFO("rolldes: %f  kproll: %f", rolldes, kproll);
 
 
     /* Portion for additional constraint equations goes here once we have figured out what that looks like.
      * These must be added to A and b at the ending rows. Ie, if we had three additional constraint equations and one
      * motor-specific constraint equation on a 6 motor craft, then Fthe three additional equations would form the last
      * three rows of A and b, which would be a 8x5 matrix and 8x1 vector, respectively. */
+
+
 
     // Fill in remaining values of forcing term. (rows 1-4)
     // k_() are tuning constants from module 3, currently in module 2.
@@ -106,7 +108,7 @@ void module4() {
     // If A is L x Nmotors and b is L x 1 or simply L, then thrusts will be of dimensions Nmotors x 1.
 
 
-    // cout<<A<<endl;
+    // cout<<A<<endl;+_
     // cout<<b<<endl;
 
     // thrusts = ((A.transpose()*A).inverse())*(A.transpose()*b);

@@ -532,6 +532,7 @@ Navigator::run()
 		NavigatorMode *navigation_mode_new{nullptr};
 
 		switch (_vstatus.nav_state) {
+		case vehicle_status_s::NAVIGATION_STATE_RHOMAN:
 		case vehicle_status_s::NAVIGATION_STATE_AUTO_MISSION:
 			_pos_sp_triplet_published_invalid_once = false;
 

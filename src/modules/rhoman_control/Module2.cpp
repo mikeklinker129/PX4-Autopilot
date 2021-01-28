@@ -35,6 +35,8 @@ void module2(const struct position_setpoint_triplet_s *pos_sp_triplet) {
         ydes = (double)y_float;
         zdes = (double)z_float;
 
+        // PX4_INFO("xdes: %f  ydes: %f  zdes: %f  ", xdes, ydes, zdes);
+
         // Dont use this. It is mode dependent. 
         //distancetotarget = (double) get_distance_to_next_waypoint( veh_lat, veh_lon,  pos_sp_triplet->current.lat, pos_sp_triplet->current.lon);
     
@@ -60,9 +62,11 @@ void module2(const struct position_setpoint_triplet_s *pos_sp_triplet) {
     ydes = temp_x_des;
     zdes = -zdes; 
 
-    xdes =  2.0;
-    ydes = 50.0;
-    zdes = 5.1;
+
+
+    // xdes =  2.0;
+    // ydes = 50.0;
+    // zdes = 5.1;
 
 
     // Storing old distance to target value.
@@ -102,10 +106,10 @@ void module2(const struct position_setpoint_triplet_s *pos_sp_triplet) {
     // zdotm = 0;
     // distancetotarget = 0.0;
 
-    PX4_INFO("Yaw: %f Pitch: %f  Roll: %f pitchdot: %f  rolldot: %f  yawabsdot: %f", yawabsm*180/M_PI, pitchm, rollm, pitchdotm, rolldotm, yawabsdotm );
-    PX4_INFO("xm: %f  ym: %f  zm: %f  zdot: %f", xm, ym, zm, zdotm );
-    PX4_INFO("xdes: %f  ydes: %f  zdes: %f  yawdes: %f", xdes, ydes, zdes, yawdes*180/M_PI);
-    PX4_INFO("distancetotarget: %f", distancetotarget);
+    // PX4_INFO("Yaw: %f Pitch: %f  Roll: %f pitchdot: %f  rolldot: %f  yawabsdot: %f", yawabsm*180/M_PI, pitchm, rollm, pitchdotm, rolldotm, yawabsdotm );
+    // PX4_INFO("xm: %f  ym: %f  zm: %f  zdot: %f", xm, ym, zm, zdotm );
+    // PX4_INFO("xdes: %f  ydes: %f  zdes: %f  yawdes: %f", xdes, ydes, zdes, yawdes*180/M_PI);
+    // PX4_INFO("distancetotarget: %f", distancetotarget);
 
 
 
@@ -168,7 +172,7 @@ void module2(const struct position_setpoint_triplet_s *pos_sp_triplet) {
             }
             else {
                 // Allow rolls up to +/-10 degrees if the drone is pitched towards the target.
-                rolldes = fminl(fmaxl(-yawdes + yawabsm, -10 * M_PI / 180), 10 * M_PI / 180);
+                rolldes = fminl(fmaxl(-yawdes + yawabsm, -20 * M_PI / 180), 20 * M_PI / 180);
             }
         }
         else {
@@ -209,7 +213,7 @@ void module2(const struct position_setpoint_triplet_s *pos_sp_triplet) {
 
     }
 
-     PX4_INFO("pitchdes: %f   rolldes: %f  yawmove: %f", pitchdes, rolldes, yawmove);
+     // PX4_INFO("pitchdes: %f   rolldes: %f  yawmove: %f", pitchdes, rolldes, yawmove);
 
 
     // Module 3
@@ -229,7 +233,7 @@ void module2(const struct position_setpoint_triplet_s *pos_sp_triplet) {
 
     kppitch=6; //2
     kdpitch=10; //20
-    kproll=6;
+    kproll=100;
     kdroll=10;
     kpyaw=1000;
     kdyaw=800;
